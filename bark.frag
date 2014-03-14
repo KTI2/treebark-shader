@@ -33,7 +33,8 @@ void main()
 	float numint = floor( t / Size );
 
 	gl_FragColor = Color;		// default color
-		
+	
+	//Cracks
 	if(mod(s/Size, 2.0) < .15 || mod(t/Size, 2.0) < .08)
 		gl_FragColor = vec4(Color.rgb*.25, 1.0);
 	
