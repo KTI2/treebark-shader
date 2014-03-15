@@ -36,12 +36,9 @@ void main()
 	
 	//Cracks
 	if(mod(s/Size, 2.0) < .15 || mod(t/Size, 2.0) < .08)
+	{
 		gl_FragColor = vec4(Color.rgb*.25, 1.0);
-	
-	//if( mod( numins+numint, 2. ) == 0. )
-	//{
-	//	gl_FragColor = vec4( 1., 1., 1., 1. );
-	//}
+	}
 
 	gl_FragColor.rgb *= LightIntensity;	// apply lighting model
 }

@@ -1,7 +1,7 @@
 varying vec4  Color;
 varying float LightIntensity;
 varying vec2  vST;
-varying vec3 vMCposition;
+varying vec3	vMCposition;
 
 const vec3 LIGHTPOS = vec3( 0., 0., 10. );
 const vec3 barkColor = vec3(.529, .208, 0);
@@ -16,10 +16,6 @@ uniform sampler3D Noise3;
 void main()
 {
 	Color = vec4(barkColor, 1.0);
-	
-	vec3 tnorm = normalize( vec3( gl_NormalMatrix * gl_Normal ) );
-	vec3 ECposition = vec3( gl_ModelViewMatrix * gl_Vertex );
-	LightIntensity  = abs( dot( normalize(LIGHTPOS - ECposition), tnorm )  );
 
 	vST = gl_MultiTexCoord0.st;
 	vMCposition = gl_Vertex.xyz;
@@ -43,13 +39,18 @@ void main()
 	t+= delta/3.;
 	
 	vec4 pos = gl_Vertex;
+	vec3 tnorm = normalize( vec3( gl_NormalMatrix * gl_Normal ) );
 	
-	//If not in a crack, displace
-	if(mod(s/Size, 2.0) >= .15 && mod(t/Size, 2.0) >= .08)
+	//Bark chunks (anti cracks)
+	if(mod(s/Size, 2.0) >= .14 && mod(t/Size, 2.0) >= .07)
 	{
-		pos+= vec4(tnorm, 1.0);
+		pos= vec4(pos.xyz + gl_Normal*.1, 1.0);
+		tnorm = gl_Normal +(normalize(gl_Normal)*.1, 1.0);
 	}
 	
-	//gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+	//Lighting
+	vec3 ECposition = vec3( gl_ModelViewMatrix * pos );
+	LightIntensity  = abs( dot( normalize(LIGHTPOS - ECposition), tnorm )  );
+	
 	gl_Position = gl_ModelViewProjectionMatrix * pos;
 }

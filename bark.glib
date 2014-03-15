@@ -9,4 +9,4 @@ Program  bark				\
 	uNoiseMag <0. .03 .15> uNoiseFreq <0. 3. 6.>	\
 	Size <0. 0.017 .1> 
 
-Sphere 1 60 60
+Sphere 1 500 500
