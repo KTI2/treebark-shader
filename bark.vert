@@ -1,8 +1,3 @@
-varying vec4  Color;
-varying float LightIntensity;
-varying vec2  vST;
-varying vec3	vMCposition;
-
 //Lighting
 uniform float uLightX, uLightY, uLightZ;
 uniform float uKa, uKd, uKs;
@@ -13,22 +8,25 @@ varying float uShininess;
 varying vec3 vNs;
 varying vec3 vLs;
 varying vec3 vEs;
-
 varying vec3 vPVs;
-
-varying vec4 barkColor;
-
-uniform float Size;
 
 //Noise
 uniform float uNoiseMag;
 uniform float uNoiseFreq;
 uniform sampler3D Noise3;
 
+//Mine
+varying vec4 	Color;
+varying vec2  	vST;
+varying vec3	vMCposition;
+
+varying vec4 barkColor;
+uniform float Size;
+
 void main()
 {
 	barkColor = vec4(.529, .208, 0, 1.0);
-	uShininess = .5;
+	uShininess = .1;
 	Color = vec4(barkColor);
 
 	vST = gl_MultiTexCoord0.st;
@@ -56,10 +54,32 @@ void main()
 	vec3 tnorm = normalize( vec3( gl_NormalMatrix * gl_Normal ) );
 	
 	//Bark chunks (anti cracks)
-	if(mod(s/Size, 2.0) >= .14 && mod(t/Size, 2.0) >= .07)
+	float height = .1+(delta*2.);
+	
+	float fracts = mod(s/Size, 2.0);
+	float fractt = mod(t/Size, 2.0);
+	
+	if(fracts >= .14 && fractt >= .07)
 	{
-		pos= vec4(pos.xyz + gl_Normal*.1, 1.0);
-		tnorm = normalize(gl_Normal +(normalize(gl_Normal)*.1, 1.0));
+		pos= vec4(gl_Vertex.xyz + gl_Normal*height, 1.0);
+		//tnorm = normalize(gl_Normal + gl_Normal*height);
+		
+		//Ramp
+		if(fracts < .45 || fractt < .24)
+		{
+			//Convert to coefficient for blending
+			fracts-= .14;
+			fractt-= .07;
+			fracts*= 3.226;
+			fractt*= 5.883;
+			
+			if(fracts > fractt)
+			{
+				pos= vec4(gl_Vertex.xyz + gl_Normal*height*fractt, 1.0);
+			} else {
+				pos= vec4(gl_Vertex.xyz + gl_Normal*height*fracts, 1.0);
+			}
+		}
 	}
 	
 	//Lighting
@@ -70,27 +90,6 @@ void main()
 	vNs = tnorm;
 	vLs = eyeLightPosition - ECposition.xyz;		// vector from the point
 	vEs = vec3( 0., 0., 0. ) - ECposition.xyz;		// vector from the point
-	
-	vec3 Normal = normalize(vNs);
-	vec3 Light =  normalize(vLs);
-	vec3 Eye =    normalize(vEs);
-
-	vec4 ambient = uKa * Color;
-	
-	float d = max( dot(Normal,Light), 0. );
-	vec4 diffuse = uKd * d * Color;
-
-	float sLight = 0.;
-	
-	if( dot(Normal,Light) > 0. )		// only do specular if the light can see the point
-	{
-		vec3 ref = normalize( 2. * Normal * dot(Normal,Light) - Light );
-		sLight = pow( max( dot(Eye,ref),0. ), uShininess );
-	}
-	
-	vec4 specular = uKs * sLight * uSpecularColor;
-
-	vPVs = ambient.rgb + diffuse.rgb + specular.rgb;
 	
 	gl_Position = gl_ModelViewProjectionMatrix * pos;
 }

@@ -1,5 +1,4 @@
 varying vec4  Color;
-varying float LightIntensity;
 varying vec2  vST;
 
 //Light
@@ -42,14 +41,15 @@ void main()
 	
 	float numins = floor( s / Size );
 	float numint = floor( t / Size );
-
-	Color = Color;		// default color
+	
+	if(mod(numins, 2.0) == 0.)
+		t+= Size;
 	
 	//Cracks
 	if(mod(s/Size, 2.0) < .15 || mod(t/Size, 2.0) < .08)
 	{
-		//Color = vec4(Color.rgb*.25, 1.0);
-	}
+		Color = vec4(Color.rgb*.25, 1.0);
+	} 
 	
 	//Lighting
 	vec3 Normal = normalize(vNs);
