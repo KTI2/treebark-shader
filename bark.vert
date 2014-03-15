@@ -3,8 +3,20 @@ varying float LightIntensity;
 varying vec2  vST;
 varying vec3	vMCposition;
 
-const vec3 LIGHTPOS = vec3( 0., 0., 10. );
-const vec3 barkColor = vec3(.529, .208, 0);
+//Lighting
+uniform float uLightX, uLightY, uLightZ;
+uniform float uKa, uKd, uKs;
+uniform vec4  uSpecularColor;
+
+varying float uShininess;
+
+varying vec3 vNs;
+varying vec3 vLs;
+varying vec3 vEs;
+
+varying vec3 vPVs;
+
+varying vec4 barkColor;
 
 uniform float Size;
 
@@ -15,7 +27,9 @@ uniform sampler3D Noise3;
 
 void main()
 {
-	Color = vec4(barkColor, 1.0);
+	barkColor = vec4(.529, .208, 0, 1.0);
+	uShininess = .5;
+	Color = vec4(barkColor);
 
 	vST = gl_MultiTexCoord0.st;
 	vMCposition = gl_Vertex.xyz;
@@ -45,12 +59,38 @@ void main()
 	if(mod(s/Size, 2.0) >= .14 && mod(t/Size, 2.0) >= .07)
 	{
 		pos= vec4(pos.xyz + gl_Normal*.1, 1.0);
-		tnorm = gl_Normal +(normalize(gl_Normal)*.1, 1.0);
+		tnorm = normalize(gl_Normal +(normalize(gl_Normal)*.1, 1.0));
 	}
 	
 	//Lighting
 	vec3 ECposition = vec3( gl_ModelViewMatrix * pos );
-	LightIntensity  = abs( dot( normalize(LIGHTPOS - ECposition), tnorm )  );
+	
+	vec3 eyeLightPosition = vec3( uLightX, uLightY, uLightZ );
+	
+	vNs = tnorm;
+	vLs = eyeLightPosition - ECposition.xyz;		// vector from the point
+	vEs = vec3( 0., 0., 0. ) - ECposition.xyz;		// vector from the point
+	
+	vec3 Normal = normalize(vNs);
+	vec3 Light =  normalize(vLs);
+	vec3 Eye =    normalize(vEs);
+
+	vec4 ambient = uKa * Color;
+	
+	float d = max( dot(Normal,Light), 0. );
+	vec4 diffuse = uKd * d * Color;
+
+	float sLight = 0.;
+	
+	if( dot(Normal,Light) > 0. )		// only do specular if the light can see the point
+	{
+		vec3 ref = normalize( 2. * Normal * dot(Normal,Light) - Light );
+		sLight = pow( max( dot(Eye,ref),0. ), uShininess );
+	}
+	
+	vec4 specular = uKs * sLight * uSpecularColor;
+
+	vPVs = ambient.rgb + diffuse.rgb + specular.rgb;
 	
 	gl_Position = gl_ModelViewProjectionMatrix * pos;
 }

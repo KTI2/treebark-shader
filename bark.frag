@@ -2,9 +2,20 @@ varying vec4  Color;
 varying float LightIntensity;
 varying vec2  vST;
 
+//Light
+uniform float uKa, uKd, uKs;
+uniform vec4  uColor;
+uniform vec4  uSpecularColor;
+
+varying float uShininess;
 varying vec3  vMCposition;
 
-uniform bool uUseST;
+varying vec3 vNs;
+varying vec3 vLs;
+varying vec3 vEs;
+
+varying vec3 vPVs;
+
 uniform float Size;
 
 uniform float uNoiseMag;
@@ -32,13 +43,32 @@ void main()
 	float numins = floor( s / Size );
 	float numint = floor( t / Size );
 
-	gl_FragColor = Color;		// default color
+	Color = Color;		// default color
 	
 	//Cracks
 	if(mod(s/Size, 2.0) < .15 || mod(t/Size, 2.0) < .08)
 	{
-		gl_FragColor = vec4(Color.rgb*.25, 1.0);
+		//Color = vec4(Color.rgb*.25, 1.0);
 	}
+	
+	//Lighting
+	vec3 Normal = normalize(vNs);
+	vec3 Light =  normalize(vLs);
+	vec3 Eye =    normalize(vEs);
+	
+	vec4 ambient = uKa * Color;
 
-	gl_FragColor.rgb *= LightIntensity;	// apply lighting model
+	float d = max( dot(Normal,Light), 0. );
+	vec4 diffuse = uKd * d * Color;
+
+	float sLight = 0.;
+	if( dot(Normal,Light) > 0. )		// only do specular if the light can see the point
+	{
+		vec3 ref = normalize( 2. * Normal * dot(Normal,Light) - Light );
+		sLight = pow( max( dot(Eye,ref),0. ), uShininess );
+	}
+	vec4 specular = uKs * sLight * uSpecularColor;
+
+	gl_FragColor = vec4( ambient.rgb + diffuse.rgb + specular.rgb, 1. );
+	//gl_FragColor.rgb *= LightIntensity;	// apply lighting model
 }
