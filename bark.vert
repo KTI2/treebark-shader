@@ -16,18 +16,14 @@ uniform float uNoiseFreq;
 uniform sampler3D Noise3;
 
 //Mine
-varying vec4 	Color;
 varying vec2  	vST;
 varying vec3	vMCposition;
 
-varying vec4 barkColor;
 uniform float Size;
 
 void main()
 {
-	barkColor = vec4(.529, .208, 0, 1.0);
 	uShininess = .1;
-	Color = vec4(barkColor);
 
 	vST = gl_MultiTexCoord0.st;
 	vMCposition = gl_Vertex.xyz;
@@ -37,6 +33,9 @@ void main()
 	float n = nv.r + nv.g + nv.b + nv.a;	// 1. -> 3.
 	n = ( n - 2. );				// -1. -> 1.
 	float delta = uNoiseMag * n;
+	
+	vec4 pos = gl_Vertex;
+	vec3 tnorm = normalize( vec3( gl_NormalMatrix * gl_Normal ) );
 	
 	//Displacement
 	float s;
@@ -50,8 +49,12 @@ void main()
 	s+= delta;
 	t+= delta/3.;
 	
-	vec4 pos = gl_Vertex;
-	vec3 tnorm = normalize( vec3( gl_NormalMatrix * gl_Normal ) );
+	//Ofset Cracks a bit
+	float numins = floor( s / Size );
+	float numint = floor( t / Size );
+	
+	if(mod(numins, 2.0) == 0.)
+		t+= Size;
 	
 	//Bark chunks (anti cracks)
 	float height = .1+(delta*2.);

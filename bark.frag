@@ -1,4 +1,3 @@
-varying vec4  Color;
 varying vec2  vST;
 
 //Light
@@ -21,8 +20,13 @@ uniform float uNoiseMag;
 uniform float uNoiseFreq;
 uniform sampler3D Noise3;
 
+const vec4 barkColor = vec4(.722, .506, .275, 1.0);
+uniform float barkShade;
+
 void main()
 {	
+	vec4 Color = vec4(barkColor.rgb*barkShade, 1.0);
+	
 	float s;
 	float t;
 	
@@ -30,7 +34,7 @@ void main()
 	float n = nv.r + nv.g + nv.b + nv.a;	// 1. -> 3.
 	n = ( n - 2. );				// -1. -> 1.
 	float delta = uNoiseMag * n;
-
+	
 	s = vST.s;
 	t = vST.t;
 
@@ -38,6 +42,9 @@ void main()
 	
 	s+= delta;
 	t+= delta/3.;
+	
+	//Color variation
+	Color = vec4(Color.r+delta*4., Color.g+delta*4., Color.b+delta*4., 1.0);
 	
 	float numins = floor( s / Size );
 	float numint = floor( t / Size );
@@ -49,7 +56,7 @@ void main()
 	if(mod(s/Size, 2.0) < .15 || mod(t/Size, 2.0) < .08)
 	{
 		Color = vec4(Color.rgb*.25, 1.0);
-	} 
+	}
 	
 	//Lighting
 	vec3 Normal = normalize(vNs);
