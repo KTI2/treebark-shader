@@ -1,31 +1,22 @@
-//Lighting
+#version 330 compatibility
+
 uniform float uLightX, uLightY, uLightZ;
-uniform float uKa, uKd, uKs;
-uniform vec4  uSpecularColor;
+uniform float Size;
 
-varying float uShininess;
+out vec3 vLs;
+out vec3 vEs;
 
-varying vec3 vNs;
-varying vec3 vLs;
-varying vec3 vEs;
-varying vec3 vPVs;
+out vec3 vMCposition;
+out float height;
 
 //Noise
 uniform float uNoiseMag;
 uniform float uNoiseFreq;
 uniform sampler3D Noise3;
 
-//Mine
-varying vec2  	vST;
-varying vec3	vMCposition;
-
-uniform float Size;
 
 void main()
 {
-	uShininess = .1;
-
-	vST = gl_MultiTexCoord0.st;
 	vMCposition = gl_Vertex.xyz;
 	
 	//Noise
@@ -35,21 +26,17 @@ void main()
 	float delta = uNoiseMag * n;
 	
 	vec4 pos = gl_Vertex;
-	vec3 tnorm = normalize( vec3( gl_NormalMatrix * gl_Normal ) );
 	
 	//Displacement
-	float s;
-	float t;
-
-	s = vST.s;
-	t = vST.t;
+	float s = gl_MultiTexCoord0.s;
+	float t = gl_MultiTexCoord0.t;
 
 	t/=3.5;
 	
 	s+= delta;
 	t+= delta/3.;
 	
-	//Ofset Cracks a bit
+	//Offset Cracks a bit
 	float numins = floor( s / Size );
 	float numint = floor( t / Size );
 	
@@ -57,7 +44,7 @@ void main()
 		t+= Size;
 	
 	//Bark chunks (anti cracks)
-	float height = .1+(delta*2.);
+	height = .1+(delta*2.);
 	
 	float fracts = mod(s/Size, 2.0);
 	float fractt = mod(t/Size, 2.0);
@@ -65,7 +52,6 @@ void main()
 	if(fracts >= .14 && fractt >= .07)
 	{
 		pos= vec4(gl_Vertex.xyz + gl_Normal*height, 1.0);
-		//tnorm = normalize(gl_Normal + gl_Normal*height);
 		
 		//Ramp
 		if(fracts < .45 || fractt < .24)
@@ -86,13 +72,12 @@ void main()
 	}
 	
 	//Lighting
-	vec3 ECposition = vec3( gl_ModelViewMatrix * pos );
+	vec4 ECposition = gl_ModelViewMatrix * pos;
 	
 	vec3 eyeLightPosition = vec3( uLightX, uLightY, uLightZ );
 	
-	vNs = tnorm;
-	vLs = eyeLightPosition - ECposition.xyz;		// vector from the point
-	vEs = vec3( 0., 0., 0. ) - ECposition.xyz;		// vector from the point
+	vLs = eyeLightPosition - ECposition.xyz;
+	vEs = vec3( 0., 0., 0. ) - ECposition.xyz;
 	
 	gl_Position = gl_ModelViewProjectionMatrix * pos;
 }

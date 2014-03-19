@@ -4,6 +4,7 @@ LookAt 0 0 2  0 0 0  0 1 0
 Perspective 90
 
 Vertex   bark.vert
+Geometry bark.geom
 Fragment bark.frag
 Program  bark				\
 	Size <0. 0.017 .1>		 \
@@ -12,10 +13,11 @@ Program  bark				\
 	uKa <0. 0.1 1.0>			\
 	uKd <0. 0.6 1.0>			\
 	uKs <0. 0.15 1.0>			\
-	uLightX <-20. 5. 20.>   		\
+	uLightX <-20. 5. 20.>   	\
 	uLightY <-20. 10. 20.>		\
 	uLightZ <-20. 20. 20.>		\
 	uSpecularColor {1. 1. 1. 1.} \
+	uShininess <3. 10. 1000.>		\
 	barkShade <0. .66 1.>
 
 Sphere 1 500 500
